@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI News Generator - Spegsakujuara</title>
+    <style>
+        :root {
+            --primary-color: #1a365d;
+            --secondary-color: #2b6cb0;
+            --accent-color: #d69e2e;
+            --bg-color: #f7fafc;
+            --text-color: #2d3748;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        header {
+            text-align: center;
+            border-bottom: 3px double var(--primary-color);
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+
+        header h1 {
+            margin: 0;
+            color: var(--primary-color);
+            font-size: 24px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        header p {
+            margin: 5px 0 0 0;
+            font-size: 14px;
+            color: #718096;
+            font-style: italic;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: var(--primary-color);
+        }
+
+        input[type="text"], input[type="file"], textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #cbd5e0;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 14px;
+        }
+
+        input[type="file"] {
+            background: #edf2f7;
+            cursor: pointer;
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            width: 100%;
+            transition: background 0.3s ease;
+        }
+
+        button:hover {
+            background-color: var(--secondary-color);
+        }
+
+        button:disabled {
+            background-color: #cbd5e0;
+            cursor: not-allowed;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            font-style: italic;
+            color: var(--secondary-color);
+            margin: 15px 0;
+        }
+
+        .result-container {
+            margin-top: 30px;
+            display: none;
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+
+        .result-header h2 {
+            margin: 0;
+            font-size: 18px;
+            color: var(--primary-color);
+        }
+
+        .btn-copy {
+            background-color: #4a5568;
+            padding: 6px 12px;
+            font-size: 12px;
+            width: auto;
+        }
+
+        .btn-copy:hover {
+            background-color: #2d3748;
+        }
+
+        #outputFormat {
+            white-space: pre-wrap;
+            background: #f8fafc;
+            padding: 20px;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 15px;
+            text-align: justify;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            font-size: 12px;
+            color: #a0aec0;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Sistem Generator Rilis Berita Humas</h1>
+        <p>Aplikasi Resmi Internal spegsakujuara.blogspot.com</p>
+    </header>
+
+    <!-- Konfigurasi API Key -->
+    <div class="form-group">
+        <label for="apiKey">Gemini API Key:</label>
+        <input type="text" id="apiKey" placeholder="Masukkan Gemini API Key Anda di sini...">
+    </div>
+
+    <!-- Upload File Bahan -->
+    <div class="form-group">
+        <label for="fileInput">Unggah File Bahan Berita (.txt):</label>
+        <input type="file" id="fileInput" accept=".txt">
+    </div>
+
+    <!-- Backup Teks Input -->
+    <div class="form-group">
+        <label for="textFallback">Atau Tempel Teks Bahan Berita di Sini (Opsional):</label>
+        <textarea id="textFallback" rows="6" placeholder="Jika tidak mengunggah file, Anda bisa langsung mengetik atau menempel materi berita di sini..."></textarea>
+    </div>
+
+    <button id="generateBtn" onclick="generatePressRelease()">Generate Press Release</button>
+
+    <div class="loading" id="loadingText">Sedang merangkai rilis berita dengan kaidah jurnalistik terbaik... Mohon tunggu.</div>
+
+    <!-- Output Hasil -->
+    <div class="result-container" id="resultContainer">
+        <div class="result-header">
+            <h2>Draf Rilis Pers Resmi</h2>
+            <button class="btn-copy" onclick="copyToClipboard()">Salin Teks</button>
+        </div>
+        <div id="outputFormat"></div>
+    </div>
+
+    <footer>
+        &copy; Sistem Integrasi Kehumasan Spegsaku Juara. Aktif Selamanya.
+    </footer>
+</div>
+
+<script>
+    let fileContent = "";
+
+    // Membaca file saat diunggah
+    document.getElementById('fileInput').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            fileContent = e.target.result;
+        };
+        reader.readAsText(file);
+    });
+
+    async function generatePressRelease() {
+        const apiKey = document.getElementById('apiKey').value.trim();
+        const fallbackText = document.getElementById('textFallback').value.trim();
+        const finalInputText = fileContent || fallbackText;
+
+        if (!apiKey) {
+            alert('Mohon masukkan Gemini API Key terlebih dahulu.');
+            return;
+        }
+
+        if (!finalInputText) {
+            alert('Mohon unggah file .txt atau isi kotak teks bahan berita.');
+            return;
+        }
+
+        const generateBtn = document.getElementById('generateBtn');
+        const loadingText = document.getElementById('loadingText');
+        const resultContainer = document.getElementById('resultContainer');
+        const outputFormat = document.getElementById('outputFormat');
+
+        generateBtn.disabled = true;
+        loadingText.style.display = 'block';
+        resultContainer.style.display = 'none';
+
+        // Prompt rekayasa teks agar sesuai dengan kebutuhan spesifik Anda
+        const promptSystem = `
+        Anda adalah seorang staf ahli Hubungan Masyarakat (Humas) dan Jurnalis senior di sekolah. Tugas Anda adalah membuat teks Press Release resmi berdasarkan bahan mentah yang diberikan.
+        
+        Patuhi aturan penulisan berikut dengan ketat:
+        1. Format: Mengikuti struktur Press Release Jurnalistik formal (Judul Menarik, Tanggal/Tempat/Unsur Dateline, Teras Berita/Lead, Tubuh Berita, dan Penutup).
+        2. Gaya Bahasa: Bahasa Indonesia baku sesuai KBBI dan EYD yang berlaku. Nada tulisan harus sopan, akademis, berwibawa, namun tetap membumi dan menyentuh hati pembaca. Hindari kata-kata bombastis yang berlebihan (seperti: "mengguncang dunia", "luar biasa dahsyat", dll). Fokus pada esensi prestasi atau kegiatan.
+        3. Sentuhan Khusus: Di bagian akhir atau paragraf penutup sebelum informasi teknis, WAJIB menyertakan statemen penguat pamungkas dari Kepala Sekolah, yaitu "Edhi Purwanto, S.Pd.". Buat kutipan (quotes) langsung yang relevan, mendalam, dan memotivasi berdasarkan bahan materi berita tersebut.
+        4. Target Publikasi: Siap muat untuk blog resmi sekolah: spegsakujuara.blogspot.com.
+
+        Bahan Mentah Berita:
+        ${finalInputText}
+        `;
+
+        try {
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    contents: [{
+                        parts: [{ text: promptSystem }]
+                    }]
+                })
+            });
+
+            const data = await response.json();
+            
+            if (data.candidates && data.candidates[0].content.parts[0].text) {
+                let rawText = data.candidates[0].content.parts[0].text;
+                // Membersihkan markdown asterisks yang mengganggu estetika rilis pers resmi bersih
+                let cleanText = rawText.replace(/\*\*/g, '').replace(/\*/g, '');
+                
+                outputFormat.innerText = cleanText;
+                resultContainer.style.display = 'block';
+            } else {
+                alert('Gagal menghasilkan berita. Pastikan API Key benar atau format bahan berita valid.');
+            }
+
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Terjadi kesalahan koneksi ke server Gemini AI.');
+        } finally {
+            generateBtn.disabled = false;
+            loadingText.style.display = 'none';
+        }
+    }
+
+    function copyToClipboard() {
+        const text = document.getElementById('outputFormat').innerText;
+        navigator.clipboard.writeText(text).then(() => {
+            alert('Teks berita berhasil disalin ke papan klip!');
+        }).catch(err => {
+            alert('Gagal menyalin teks otomatis: ', err);
+        });
+    }
+</script>
+
+</body>
+</html>
