@@ -257,7 +257,7 @@
     const fileStatus = document.getElementById('fileStatus');
     let extractedText = "";
 
-    // Handler Pembacaan File
+    // Handler Pembacaan File (Mendukung Word, PDF, dan TXT)
     fileInput.addEventListener('change', async (e) => {
         const file = e.target.files[0];
         if (!file) return;
@@ -286,17 +286,18 @@
                 extractedText = await file.text();
             }
             fileStatus.innerText = `Berhasil memuat: ${file.name}`;
-            fileStatus.style.color = "green";
+            fileStatus.style.color = "#16a34a";
         } catch (err) {
             alert("Gagal membaca file: " + err.message);
             fileStatus.innerText = "Klik untuk unggah ulang";
+            fileStatus.style.color = var(--text-muted);
         }
     });
 
-    // Handler Eksekusi AI
+    // Handler Eksekusi AI (Sudah Diperbaiki dari Error 'Undefined')
     document.getElementById('generateBtn').addEventListener('click', async () => {
-        const key = document.getElementById('apiKey').value;
-        const manual = document.getElementById('manualText').value;
+        const key = document.getElementById('apiKey').value.trim();
+        const manual = document.getElementById('manualText').value.trim();
         const finalContent = extractedText || manual;
 
         if(!key) return alert("API Key wajib diisi!");
@@ -315,10 +316,10 @@
             
             KRITERIA TULISAN:
             1. Gunakan bahasa Indonesia baku sesuai KBBI dan EYD yang sempurna.
-            2. Gaya bahasa: Membumi, menyentuh hati, namun tetap akademis dan berwibawa (Hindari istilah hiperbola/bombastis).
-            3. Struktur: Headline Menarik, Dateline (LOKASI, TANGGAL), Lead Berita, Tubuh Berita, dan Penutup.
+            2. Gaya bahasa: Membumi, menyentuh hati, namun tetap akademis dan berwibawa (Hindari istilah hiperbola atau kata-kata bombastis).
+            3. Struktur: Headline Menarik (tanpa tanda kutip berlebih), Dateline (LOKASI, TANGGAL), Lead Berita, Tubuh Berita, dan Penutup.
             4. WAJIB: Di akhir tulisan, sertakan statemen penguat pamungkas dari Kepala Sekolah, Bapak Edhi Purwanto, S.Pd., lengkap dengan kutipan (quotes) inspiratif yang relevan dengan isi berita.
-            5. Bersihkan hasil dari tanda bintang (**) atau simbol markdown lainnya agar teks benar-benar bersih siap salin.
+            5. JANGAN gunakan format markdown seperti bintang-bintang (**) atau pagar (#). Tuliskan dalam bentuk teks berita bersih dan rapi yang siap disalin.
 
             BAHAN BERITA:
             ${finalContent}
@@ -332,26 +333,46 @@
             });
 
             const data = await resp.json();
-            const text = data.candidates[0].content.parts[0].text;
             
-            document.getElementById('output').innerText = text.replace(/\*/g, '');
-            resultArea.style.display = 'block';
+            // Validasi apakah ada error dari Google API
+            if (data.error) {
+                throw new Error(`${data.error.message} (Kode: ${data.error.code})`);
+            }
+
+            // Validasi keamanan struktur data sebelum membaca properti teks
+            if (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts && data.candidates[0].content.parts[0]) {
+                let text = data.candidates[0].content.parts[0].text;
+                
+                // Pembersihan ekstra untuk menghilangkan simbol markdown yang tersisa
+                text = text.replace(/[\#\*\_]/g, ''); 
+                
+                document.getElementById('output').innerText = text;
+                resultArea.style.display = 'block';
+            } else {
+                // Antisipasi jika diblokir oleh Safety Settings Gemini
+                if (data.candidates && data.candidates[0].finishReason === "SAFETY") {
+                    throw new Error("Konten bahan berita ditolak oleh AI karena alasan keamanan/sensitif.");
+                } else {
+                    throw new Error("Format respons AI tidak dikenali atau kosong.");
+                }
+            }
         } catch (err) {
-            alert("Koneksi gagal: " + err.message);
+            alert("Gagal Memproses Berita:\n" + err.message);
+            console.error(err);
         } finally {
             btn.disabled = false;
+            loader.style.none = 'none';
             loader.style.display = 'none';
         }
     });
 
     function copyContent() {
         const text = document.getElementById('output').innerText;
-        navigator.clipboard.writeText(text).then(() => alert("Berita disalin ke clipboard!"));
+        navigator.clipboard.writeText(text).then(() => alert("Berita berhasil disalin ke papan klip!"));
     }
 
     // Inisialisasi PDF Worker
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.worker.min.js';
 </script>
-
 </body>
 </html>
