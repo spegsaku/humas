@@ -3,376 +3,581 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI News Generator - Spegsaku Juara</title>
+    <title>Spegsaku Canva AI - Studio Jurnalistik & Hubungan Masyarakat</title>
+    <!-- Tailwind CSS for Responsive & Modern Design -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Document Extraction Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.2/mammoth.browser.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <!-- Image Download Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <!-- Elegant Premium Typography -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Playfair+Display:ital,wght=0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
     
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        serif: ['"Playfair Display"', 'serif'],
+                        brand: ['"Cinzel"', 'serif'],
+                    },
+                    colors: {
+                        brand: {
+                            navy: '#0f172a',    /* Sleek Navy slate */
+                            indigo: '#1e1b4b',  /* Deep elegant indigo */
+                            gold: '#d97706',    /* Refined amber gold */
+                            goldlight: '#fef3c7'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        :root {
-            --navy: #1a237e;
-            --gold: #fbc02d;
-            --light-bg: #f8fafc;
-            --text-main: #1e293b;
-            --text-muted: #64748b;
+        /* Custom scrollbar to match clean aesthetic */
+        ::-webkit-scrollbar {
+            width: 5px;
+            height: 5px;
         }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--light-bg);
-            color: var(--text-main);
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
+        ::-webkit-scrollbar-track {
+            background: #f8fafc;
         }
-
-        .container {
-            max-width: 900px;
-            margin: 40px auto;
-            background: white;
-            padding: 40px;
-            border-radius: 16px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
         }
-
-        header {
-            text-align: center;
-            margin-bottom: 40px;
-        }
-
-        .logo-container {
-            margin-bottom: 20px;
-        }
-
-        .logo-container img {
-            height: 100px;
-            width: auto;
-        }
-
-        h1 {
-            font-family: 'Merriweather', serif;
-            color: var(--navy);
-            font-size: 28px;
-            margin: 0 0 10px 0;
-        }
-
-        .subtitle {
-            color: var(--text-muted);
-            font-size: 15px;
-            letter-spacing: 0.5px;
-        }
-
-        .section-label {
-            display: block;
-            font-weight: 600;
-            font-size: 14px;
-            color: var(--navy);
-            margin-bottom: 10px;
-            text-transform: uppercase;
-        }
-
-        .input-group {
-            margin-bottom: 25px;
-        }
-
-        input[type="password"], textarea {
-            width: 100%;
-            padding: 12px 15px;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            font-family: inherit;
-            font-size: 15px;
-            box-sizing: border-box;
-            transition: border 0.3s;
-        }
-
-        input:focus, textarea:focus {
-            outline: none;
-            border-color: var(--navy);
-        }
-
-        /* File Upload Area */
-        .file-drop-area {
-            border: 2px dashed #cbd5e1;
-            padding: 30px;
-            text-align: center;
-            border-radius: 12px;
-            background: #f1f5f9;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-
-        .file-drop-area:hover {
-            background: #e2e8f0;
-            border-color: var(--navy);
-        }
-
-        .file-drop-area p {
-            margin: 0;
-            color: var(--text-muted);
-            font-size: 14px;
-        }
-
-        .btn-primary {
-            background: var(--navy);
-            color: white;
-            border: none;
-            padding: 15px 30px;
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 16px;
-            width: 100%;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-
-        .btn-primary:hover {
-            background: #0d144d;
-            box-shadow: 0 4px 12px rgba(26, 35, 126, 0.2);
-        }
-
-        .btn-primary:disabled {
+        ::-webkit-scrollbar-thumb:hover {
             background: #94a3b8;
-            cursor: not-allowed;
         }
-
-        /* Result Area */
-        #resultArea {
-            display: none;
-            margin-top: 40px;
-            border-top: 2px solid #f1f5f9;
-            padding-top: 30px;
+        /* Smooth transition animations */
+        .fade-in {
+            animation: fadeIn 0.4s ease-out forwards;
         }
-
-        #output {
-            background: #ffffff;
-            border: 1px solid #e2e8f0;
-            padding: 30px;
-            border-radius: 8px;
-            line-height: 1.8;
-            font-family: 'Merriweather', serif;
-            font-size: 16px;
-            text-align: justify;
-            white-space: pre-wrap;
-        }
-
-        .action-bar {
-            display: flex;
-            gap: 10px;
-            margin-top: 15px;
-        }
-
-        .btn-secondary {
-            background: #f1f5f9;
-            border: 1px solid #cbd5e1;
-            padding: 10px 20px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 14px;
-        }
-
-        .loading {
-            display: none;
-            text-align: center;
-            padding: 20px;
-            font-weight: 500;
-            color: var(--navy);
-        }
-
-        footer {
-            margin-top: auto;
-            text-align: center;
-            padding: 30px;
-            font-size: 13px;
-            color: var(--text-muted);
-            background: #fff;
-            border-top: 1px solid #e2e8f0;
-        }
-
-        footer a {
-            color: var(--navy);
-            text-decoration: none;
-            font-weight: 600;
-        }
-
-        @media (max-width: 600px) {
-            .container { margin: 10px; padding: 20px; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
         }
     </style>
 </head>
-<body>
+<body class="bg-[#f8fafc] text-slate-800 font-sans min-h-screen flex flex-col antialiased">
 
-<div class="container">
-    <header>
-        <div class="logo-container">
-            <img src="http://googleusercontent.com/image_collection/image_retrieval/12815142602683500655" alt="Logo YPLP PGRI Jawa Tengah">
+    <!-- Elegant Minimalistic Header -->
+    <header class="bg-white/80 backdrop-blur-md border-b border-slate-100 px-6 py-4 flex flex-wrap items-center justify-between sticky top-0 z-40">
+        <div class="flex items-center gap-3.5">
+            <div class="bg-brand-navy p-2 rounded-xl text-white flex items-center justify-center">
+                <!-- Inline SVG representation of YPLP PGRI styling or educational shield -->
+                <svg class="w-6 h-6 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                </svg>
+            </div>
+            <div>
+                <h1 class="text-base font-bold text-slate-900 tracking-tight flex items-center gap-2">
+                    SPEGSAKU STUDIO <span class="bg-amber-100 text-amber-800 text-[10px] px-2 py-0.5 rounded-full font-semibold">AI Jurnalis</span>
+                </h1>
+                <p class="text-[11px] text-slate-400 font-medium">Asisten Humas & Desain Poster Instan</p>
+            </div>
         </div>
-        <h1>Studio Rilis Berita Humas</h1>
-        <div class="subtitle">Platform Jurnalistik Digital spegsakujuara.blogspot.com</div>
+        <div class="flex items-center gap-3 mt-2 sm:mt-0 text-xs text-slate-500">
+            <span class="flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                Sistem Siap Pakai
+            </span>
+            <span class="text-slate-200">|</span>
+            <span>Karya: </span>
+            <a href="https://toer.my.id" target="_blank" class="text-brand-indigo font-bold hover:text-brand-gold transition-colors hover:underline">Catur Pamungkas, S.Pd.,Gr.</a>
+        </div>
     </header>
 
-    <div class="input-group">
-        <label class="section-label">Gemini API Key</label>
-        <input type="password" id="apiKey" placeholder="Masukkan API Key Anda...">
-    </div>
-
-    <div class="input-group">
-        <label class="section-label">Bahan Berita (PDF, Docx, atau Teks)</label>
-        <div class="file-drop-area" onclick="document.getElementById('fileInput').click()">
-            <p id="fileStatus">Klik untuk unggah file atau tarik ke sini</p>
-            <input type="file" id="fileInput" hidden accept=".txt,.pdf,.docx,.doc">
-        </div>
-    </div>
-
-    <div class="input-group">
-        <label class="section-label">Atau Masukkan Teks Secara Manual</label>
-        <textarea id="manualText" rows="5" placeholder="Tuliskan poin-poin berita di sini..."></textarea>
-    </div>
-
-    <button id="generateBtn" class="btn-primary">Hasilkan Rilis Berita Resmi</button>
-
-    <div class="loading" id="loader">
-        <div style="margin-bottom:10px">Menyusun narasi jurnalistik...</div>
-        <small>Menggunakan Kecerdasan Buatan Gemini AI</small>
-    </div>
-
-    <div id="resultArea">
-        <label class="section-label">Hasil Draft Press Release</label>
-        <div id="output"></div>
-        <div class="action-bar">
-            <button class="btn-secondary" onclick="copyContent()">Salin Teks</button>
-            <button class="btn-secondary" onclick="window.print()">Cetak PDF</button>
-        </div>
-    </div>
-</div>
-
-<footer>
-    &copy; 2024 Spegsaku Juara. Dikembangkan oleh <a href="https://toer.my.id" target="_blank">Catur Pamungkas, S.Pd.,Gr.</a>
-</footer>
-
-<script>
-    const fileInput = document.getElementById('fileInput');
-    const fileStatus = document.getElementById('fileStatus');
-    let extractedText = "";
-
-    // Handler Pembacaan File (Mendukung Word, PDF, dan TXT)
-    fileInput.addEventListener('change', async (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
+    <!-- Main Studio Grid -->
+    <main class="flex-1 flex flex-col lg:flex-row min-h-0">
         
-        fileStatus.innerText = `Memproses: ${file.name}...`;
-        const ext = file.name.split('.').pop().toLowerCase();
+        <!-- Left: Intuitive Sidebar Control -->
+        <section class="w-full lg:w-[410px] bg-white border-r border-slate-100 p-6 overflow-y-auto shrink-0 flex flex-col gap-5">
+            <div>
+                <h2 class="text-sm font-bold text-slate-900 mb-1">Peralatan Redaksi</h2>
+                <p class="text-xs text-slate-400 leading-relaxed">Kelola bahan tulisan, kedalaman materi, dan visual berita dalam satu langkah mudah.</p>
+            </div>
 
-        try {
-            if (ext === 'docx' || ext === 'doc') {
-                const arrayBuffer = await file.arrayBuffer();
-                const result = await mammoth.extractRawText({arrayBuffer});
-                extractedText = result.value;
-            } 
-            else if (ext === 'pdf') {
-                const arrayBuffer = await file.arrayBuffer();
-                const pdf = await pdfjsLib.getDocument({data: arrayBuffer}).promise;
-                let text = "";
-                for(let i=1; i<=pdf.numPages; i++) {
-                    const page = await pdf.getPage(i);
-                    const content = await page.getTextContent();
-                    text += content.items.map(item => item.str).join(" ") + "\n";
-                }
-                extractedText = text;
-            } 
-            else {
-                extractedText = await file.text();
-            }
-            fileStatus.innerText = `Berhasil memuat: ${file.name}`;
-            fileStatus.style.color = "#16a34a";
-        } catch (err) {
-            alert("Gagal membaca file: " + err.message);
-            fileStatus.innerText = "Klik untuk unggah ulang";
-            fileStatus.style.color = var(--text-muted);
-        }
-    });
+            <!-- API Configuration with minimal styling and select model -->
+            <div class="bg-slate-50/70 p-4 rounded-xl border border-slate-100 flex flex-col gap-3.5">
+                <div>
+                    <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Google Gemini API Key</label>
+                    <div class="relative">
+                        <input type="password" id="apiKey" 
+                               placeholder="Masukkan API Key Anda..." 
+                               class="w-full pl-3 pr-10 py-2 text-xs border border-slate-200 bg-white rounded-lg focus:outline-none focus:border-brand-navy transition">
+                        <span class="absolute right-3 top-2.5 text-slate-400 cursor-pointer hover:text-slate-600 text-xs" onclick="toggleApiVisibility()">👁️</span>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Pilih Model AI Gemini</label>
+                    <select id="apiModel" class="w-full px-3 py-2 text-xs border border-slate-200 bg-white rounded-lg focus:outline-none focus:border-brand-navy transition">
+                        <option value="gemini-2.5-flash" selected>Gemini 2.5 Flash (Sangat Cepat & Efisien)</option>
+                        <option value="gemini-2.5-pro">Gemini 2.5 Pro (Analisis Kompleks & Mendalam)</option>
+                        <option value="gemini-1.5-flash">Gemini 1.5 Flash (Klasik & Stabil)</option>
+                        <option value="gemini-1.5-pro">Gemini 1.5 Pro (Klasik Kualitas Tinggi)</option>
+                    </select>
+                </div>
+                <div class="flex justify-between items-center">
+                    <p class="text-[10px] text-slate-400">Diproses aman langsung di browser.</p>
+                    <a href="https://aistudio.google.com/" target="_blank" class="text-[10px] text-brand-gold hover:underline font-semibold">Dapatkan API Key Gratis</a>
+                </div>
+            </div>
 
-    // Handler Eksekusi AI (Sudah Diperbaiki dari Error 'Undefined')
-    document.getElementById('generateBtn').addEventListener('click', async () => {
-        const key = document.getElementById('apiKey').value.trim();
-        const manual = document.getElementById('manualText').value.trim();
-        const finalContent = extractedText || manual;
+            <!-- Document Upload with beautiful minimalistic drop zone -->
+            <div>
+                <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-600 mb-2">1. Unggah Bahan Berita (PDF, Word, TXT)</label>
+                <div class="border border-dashed border-slate-200 rounded-xl p-6 bg-slate-50/50 text-center hover:bg-slate-50 hover:border-brand-indigo transition duration-200 cursor-pointer relative" id="dropZone" onclick="document.getElementById('fileInput').click()">
+                    <input type="file" id="fileInput" hidden accept=".txt,.pdf,.docx,.doc">
+                    <div class="text-2xl mb-1.5 text-slate-400">📄</div>
+                    <p class="text-xs font-semibold text-slate-700" id="fileStatus">Pilih dokumen Anda</p>
+                    <p class="text-[10px] text-slate-400 mt-0.5">Mendukung file dokumen hasil kegiatan</p>
+                </div>
+            </div>
 
-        if(!key) return alert("API Key wajib diisi!");
-        if(!finalContent) return alert("Masukkan bahan berita terlebih dahulu!");
+            <!-- Manual Editor Backup with auto-growing textarea -->
+            <div>
+                <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-600 mb-2">Atau Ketik Manual Bahan Kasar</label>
+                <textarea id="manualText" rows="4" 
+                          placeholder="Tuliskan tanggal, nama pemenang lomba, atau alur acara di sini secara singkat..." 
+                          class="w-full p-3 text-xs border border-slate-200 rounded-xl focus:outline-none focus:border-brand-navy transition resize-none bg-slate-50/30"></textarea>
+            </div>
 
-        const btn = document.getElementById('generateBtn');
-        const loader = document.getElementById('loader');
-        const resultArea = document.getElementById('resultArea');
+            <!-- Narrative Length Control Options -->
+            <div>
+                <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-600 mb-1.5">2. Pengaturan Kedalaman & Panjang Narasi</label>
+                <select id="narrativeLength" class="w-full px-3 py-2 text-xs border border-slate-200 bg-white rounded-lg focus:outline-none focus:border-brand-navy transition">
+                    <option value="long" selected>Sangat Panjang & Mendalam (Ruh Utama Utuh & Saling Menguatkan)</option>
+                    <option value="standard">Standar (Padat, Efektif & Informatif)</option>
+                </select>
+                <p class="text-[9px] text-slate-400 mt-1 leading-relaxed">
+                    *Mode "Sangat Panjang" akan mengembangkan tulisan secara luas, menguraikan detail dan dampak kegiatan, tanpa mengurangi esensi kalimat utama.
+                </p>
+            </div>
 
-        btn.disabled = true;
-        loader.style.display = 'block';
-        resultArea.style.display = 'none';
+            <!-- Visual integration / custom image upload -->
+            <div>
+                <div class="flex items-center justify-between mb-1">
+                    <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-600">3. Foto Latar Poster (Opsional)</label>
+                    <span class="text-[10px] text-brand-gold font-medium">Masuk ke Desain</span>
+                </div>
+                <input type="file" id="photoInput" accept="image/*" class="w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-[11px] file:font-semibold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200">
+            </div>
 
-        const prompt = `
-            Anda adalah staf Humas Jurnalistik profesional. Buatlah rilis berita (Press Release) resmi untuk blog: spegsakujuara.blogspot.com.
+            <!-- Action Button -->
+            <button id="generateBtn" onclick="generatePressReleaseAndPoster()"
+                    class="w-full bg-brand-navy hover:bg-slate-900 text-white py-3 px-4 rounded-xl text-xs font-bold tracking-wide transition-all duration-200 shadow-sm flex items-center justify-center gap-2 mt-2">
+                <span>✨ Susun Berita & Desain Otomatis</span>
+            </button>
+
+            <!-- Inline Professional Processing Loader -->
+            <div id="loader" class="hidden text-center py-3 bg-indigo-50/50 rounded-xl border border-indigo-100/50">
+                <div class="inline-block animate-spin rounded-full h-5 w-5 border-2 border-slate-200 border-t-brand-indigo mb-1.5"></div>
+                <p class="text-xs font-semibold text-slate-700">Menyinkronkan Data Jurnalistik...</p>
+                <p class="text-[10px] text-slate-400 px-4">Harap tidak menutup halaman selagi AI merancang tata bahasa terbaik.</p>
+            </div>
+        </section>
+
+        <!-- Right: Modern Studio Canvas Workspace -->
+        <section class="flex-1 bg-[#f1f5f9] p-6 overflow-y-auto flex flex-col xl:flex-row gap-6 items-stretch justify-center">
             
-            KRITERIA TULISAN:
-            1. Gunakan bahasa Indonesia baku sesuai KBBI dan EYD yang sempurna.
-            2. Gaya bahasa: Membumi, menyentuh hati, namun tetap akademis dan berwibawa (Hindari istilah hiperbola atau kata-kata bombastis).
-            3. Struktur: Headline Menarik (tanpa tanda kutip berlebih), Dateline (LOKASI, TANGGAL), Lead Berita, Tubuh Berita, dan Penutup.
-            4. WAJIB: Di akhir tulisan, sertakan statemen penguat pamungkas dari Kepala Sekolah, Bapak Edhi Purwanto, S.Pd., lengkap dengan kutipan (quotes) inspiratif yang relevan dengan isi berita.
-            5. JANGAN gunakan format markdown seperti bintang-bintang (**) atau pagar (#). Tuliskan dalam bentuk teks berita bersih dan rapi yang siap disalin.
+            <!-- Press Release Document Editor Style -->
+            <div class="w-full xl:w-7/12 bg-white rounded-2xl border border-slate-100 shadow-sm flex flex-col min-h-[600px] max-h-[850px] overflow-hidden">
+                <div class="px-6 py-4.5 border-b border-slate-100 flex items-center justify-between bg-white/50 backdrop-blur-md">
+                    <div>
+                        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700">Draf Press Release Resmi</h3>
+                        <p class="text-[10px] text-slate-400">Rilis siap muat di spegsakujuara.blogspot.com</p>
+                    </div>
+                    <button class="bg-brand-navy text-white hover:bg-brand-gold px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200" onclick="copyReleaseText()">
+                        Salin Naskah
+                    </button>
+                </div>
+                <!-- Readable News Typography Canvas -->
+                <div class="p-8 flex-1 overflow-y-auto text-justify bg-[#fafafa]">
+                    <div id="releaseOutput" class="text-slate-800 leading-relaxed font-serif whitespace-pre-line text-sm sm:text-base max-w-2xl mx-auto">
+                        <div class="text-center text-slate-400 py-24 italic font-sans">
+                            <div class="text-3xl mb-3">📰</div>
+                            Silakan masukkan berkas dokumen atau poin berita mentah di panel kiri, tentukan mode narasi, kemudian jalankan sistem kecerdasan buatan.
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-            BAHAN BERITA:
-            ${finalContent}
-        `;
+            <!-- Dynamic Canva-Style Poster Canvas View -->
+            <div class="w-full xl:w-5/12 flex flex-col gap-4 max-w-[440px] shrink-0">
+                <div class="w-full flex justify-between items-center bg-white px-4 py-3 rounded-xl border border-slate-100 shadow-sm">
+                    <div>
+                        <span class="text-xs font-bold uppercase tracking-wider text-slate-700">Canva Smart Poster</span>
+                        <p class="text-[9px] text-slate-400">Klik langsung teks pada poster untuk mengedit</p>
+                    </div>
+                    <button class="bg-brand-gold hover:bg-amber-600 text-white px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all shadow-sm flex items-center gap-1" onclick="downloadPoster()">
+                        📥 Unduh Gambar
+                    </button>
+                </div>
 
-        try {
-            const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
-            });
+                <!-- Beautiful Professional Canva Editorial Poster Card Template (Standard Post 4:5 Aspect Ratio) -->
+                <div id="canvaPoster" class="w-full aspect-[4/5] bg-gradient-to-br from-brand-indigo via-slate-900 to-brand-navy rounded-2xl p-6 text-white shadow-xl relative overflow-hidden flex flex-col justify-between border border-slate-800/80">
+                    
+                    <!-- Clean Elegant Editorial Layout Overlays (Canva Artstyle) -->
+                    <div class="absolute inset-0 bg-black/25 opacity-30 pointer-events-none"></div>
+                    <div class="absolute -top-20 -right-20 w-48 h-48 bg-amber-500/10 rounded-full blur-3xl"></div>
+                    <div class="absolute bottom-10 left-10 w-60 h-60 bg-blue-500/10 rounded-full blur-3xl"></div>
 
-            const data = await resp.json();
+                    <!-- Top Branding Bar -->
+                    <div class="flex items-center justify-between border-b border-white/10 pb-3.5 relative z-10">
+                        <div class="flex items-center gap-2">
+                            <!-- Premium Inline Shield Logo for School Brand -->
+                            <div class="bg-amber-500/10 p-1.5 rounded-lg border border-amber-500/20">
+                                <svg class="w-5 h-5 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.776 1.838L7.67 9.117 10 10.112l6.394-2.74a1 1 0 00.122-1.74l-6-2.553zM14 9.472v2.71a1 1 0 01-.293.707l-2.293 2.293a1 1 0 01-1.414 0l-2.293-2.293A1 1 0 017.5 12.182v-2.71a10.02 10.02 0 01-4.137-1.43c-.453.754-.7 1.62-.7 2.528 0 3.314 3.134 6 7 6s7-2.686 7-6c0-.907-.247-1.774-.7-2.528a10.02 10.02 0 01-4.137 1.43z"></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <h4 class="text-[10px] font-brand tracking-[1.5px] text-amber-300 font-bold">SMP PGRI 1 KUWARASAN</h4>
+                                <p class="text-[8px] tracking-[1px] text-slate-300 uppercase">Spegsaku Unggul Berprestasi</p>
+                            </div>
+                        </div>
+                        <span class="text-[8px] bg-amber-500 text-slate-900 px-2 py-0.5 rounded font-bold uppercase tracking-wider">PRESTASI</span>
+                    </div>
+
+                    <!-- News Image Placeholder Block -->
+                    <div class="my-3.5 w-full h-44 bg-slate-800/80 rounded-xl overflow-hidden border border-white/10 relative z-10 flex items-center justify-center">
+                        <img id="posterImage" src="https://images.unsplash.com/photo-1546410531-bb4caa6b424d?w=600&auto=format&fit=crop&q=80" 
+                             class="w-full h-full object-cover opacity-80" alt="News Image">
+                        <div class="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent"></div>
+                    </div>
+
+                    <!-- Editable Poster Title Headline -->
+                    <div class="mb-3.5 relative z-10">
+                        <h2 id="posterTitle" contenteditable="true" class="text-base font-bold font-serif text-amber-300 leading-snug text-center uppercase tracking-wide hover:bg-white/10 focus:bg-white/15 focus:outline-none rounded px-2 py-1 transition-all">
+                            Mewujudkan Masa Depan Gemilang Melalui Literasi Bersama Spegsaku
+                        </h2>
+                    </div>
+
+                    <!-- High-End Quote Component Box -->
+                    <div class="bg-white/5 border-l-4 border-amber-500 p-4 rounded-r-xl relative z-10 my-1">
+                        <p id="posterQuote" contenteditable="true" class="text-[11px] italic text-slate-100 font-medium leading-relaxed hover:bg-white/10 focus:bg-white/15 focus:outline-none rounded px-1.5 transition-all">
+                            "Dedikasi tanpa batas untuk mencetak pribadi cerdas, santun, dan mandiri."
+                        </p>
+                        <div class="text-[9px] text-amber-300 font-semibold mt-2.5 tracking-wide flex justify-between items-center">
+                            <span>— Edhi Purwanto, S.Pd.</span>
+                            <span class="text-[8px] text-slate-400 font-normal">Kepala Sekolah</span>
+                        </div>
+                    </div>
+
+                    <!-- Minimal Elegant Footer -->
+                    <div class="border-t border-white/10 pt-3 flex justify-between items-center text-[9px] text-slate-400 relative z-10">
+                        <span>📰 Layanan Humas Digital</span>
+                        <span class="text-amber-300 font-medium tracking-wide">spegsakujuara.blogspot.com</span>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Modern Sleek Toast Notification Container -->
+    <div id="toast" class="fixed bottom-6 right-6 bg-slate-900 text-white text-xs px-4 py-3 rounded-xl shadow-lg transform translate-y-20 opacity-0 transition-all duration-300 flex items-center gap-2.5 z-50">
+        <span id="toastIcon" class="text-amber-400">ℹ️</span>
+        <span id="toastMessage">Pesan sistem...</span>
+    </div>
+
+    <!-- Footer Information -->
+    <footer class="bg-white border-t border-slate-100 py-4.5 px-6 text-center text-xs text-slate-400">
+        <p>&copy; 2026 SMP PGRI 1 Kuwarasan. Pengembangan berkelanjutan untuk jurnalisme sekolah terdepan.</p>
+    </footer>
+
+    <!-- Core Application Logic -->
+    <script>
+        let extractedText = "";
+
+        // Custom Notification Utility (Replacing alerts for extreme professionalism)
+        function showToast(message, type = 'info') {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toastMessage');
+            const toastIcon = document.getElementById('toastIcon');
+
+            toastMsg.innerText = message;
             
-            // Validasi apakah ada error dari Google API
-            if (data.error) {
-                throw new Error(`${data.error.message} (Kode: ${data.error.code})`);
-            }
-
-            // Validasi keamanan struktur data sebelum membaca properti teks
-            if (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts && data.candidates[0].content.parts[0]) {
-                let text = data.candidates[0].content.parts[0].text;
-                
-                // Pembersihan ekstra untuk menghilangkan simbol markdown yang tersisa
-                text = text.replace(/[\#\*\_]/g, ''); 
-                
-                document.getElementById('output').innerText = text;
-                resultArea.style.display = 'block';
+            if (type === 'success') {
+                toastIcon.innerText = '✅';
+            } else if (type === 'error') {
+                toastIcon.innerText = '❌';
             } else {
-                // Antisipasi jika diblokir oleh Safety Settings Gemini
-                if (data.candidates && data.candidates[0].finishReason === "SAFETY") {
-                    throw new Error("Konten bahan berita ditolak oleh AI karena alasan keamanan/sensitif.");
-                } else {
-                    throw new Error("Format respons AI tidak dikenali atau kosong.");
+                toastIcon.innerText = 'ℹ️';
+            }
+
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+                toast.classList.remove('translate-y-0', 'opacity-100');
+            }, 4500);
+        }
+
+        // Image Selection Handler for Canva Poster Customization
+        document.getElementById('photoInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const posterImage = document.getElementById('posterImage');
+                    posterImage.src = event.target.result;
+                    posterImage.style.opacity = "0.9";
+                    showToast("Foto latar poster berhasil disinkronkan!", "success");
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Smart file reading handler
+        document.getElementById('fileInput').addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            const fileStatus = document.getElementById('fileStatus');
+            fileStatus.innerText = `Mengekstrak ${file.name}...`;
+            const ext = file.name.split('.').pop().toLowerCase();
+
+            try {
+                if (ext === 'docx' || ext === 'doc') {
+                    const arrayBuffer = await file.arrayBuffer();
+                    const result = await mammoth.extractRawText({arrayBuffer});
+                    extractedText = result.value;
+                } 
+                else if (ext === 'pdf') {
+                    const arrayBuffer = await file.arrayBuffer();
+                    const pdf = await pdfjsLib.getDocument({data: arrayBuffer}).promise;
+                    let text = "";
+                    for(let i=1; i<=pdf.numPages; i++) {
+                        const page = await pdf.getPage(i);
+                        const content = await page.getTextContent();
+                        text += content.items.map(item => item.str).join(" ") + "\n";
+                    }
+                    extractedText = text;
+                } 
+                else {
+                    extractedText = await file.text();
+                }
+                fileStatus.innerText = `Dokumen siap diproses`;
+                fileStatus.style.color = "#d97706";
+                showToast("Berhasil mengekstrak dokumen sumber!", "success");
+            } catch (err) {
+                showToast("Gagal membaca dokumen: " + err.message, "error");
+                fileStatus.innerText = "Gagal memproses file. Klik ulang.";
+                fileStatus.style.color = "#ef4444";
+            }
+        });
+
+        // Core AI processing and generator orchestrator
+        async function generatePressReleaseAndPoster() {
+            const key = document.getElementById('apiKey').value.trim();
+            const initialModel = document.getElementById('apiModel').value;
+            const manual = document.getElementById('manualText').value.trim();
+            const lengthMode = document.getElementById('narrativeLength').value;
+            const finalContent = extractedText || manual;
+
+            if(!key) {
+                showToast("Harap masukkan Google Gemini API Key Anda!", "error");
+                return;
+            }
+            if(!finalContent) {
+                showToast("Silakan isi materi berita melalui upload file atau teks manual.", "error");
+                return;
+            }
+
+            const btn = document.getElementById('generateBtn');
+            const loader = document.getElementById('loader');
+            const loaderTitle = loader.querySelector('p.font-semibold');
+            const loaderSub = loader.querySelector('p.text-slate-400');
+            const releaseOutput = document.getElementById('releaseOutput');
+
+            btn.disabled = true;
+            loader.classList.remove('hidden');
+
+            // Constructing narrative length directive
+            let narrativeInstruction = "";
+            if (lengthMode === "long") {
+                narrativeInstruction = `
+                KETENTUAN KHUSUS PANJANG TULISAN:
+                - Kembangkan draf berita kasar ini menjadi TEKS NASKAH YANG SANGAT PANJANG, DETIL, DAN MENDALAM (buat sekurangnya 5-7 paragraf yang mengalir secara alami).
+                - Uraikan latar belakang kegiatan, jalannya proses secara runut, makna filosofis atau tujuan edukasi dari kegiatan, serta dampak jangka panjangnya bagi kemajuan SMP PGRI 1 Kuwarasan.
+                - JANGAN menghilangkan ruh kalimat utama dari data asli secara utuh. Pertahankan fakta aslinya dengan sangat akurat.
+                - Gunakan susunan frasa kalimat yang saling menguatkan, terstruktur rapi, elegan, berwibawa akademis, dan menyentuh hati. Kalimat harus bersambung dengan transisi yang halus, menciptakan harmoni jurnalistik yang tinggi.
+                `;
+            } else {
+                narrativeInstruction = `
+                KETENTUAN KHUSUS PANJANG TULISAN:
+                - Buatlah draf rilis berita yang standar, padat, informatif, dan langsung menjelaskan inti berita secara efisien (3-4 paragraf berbobot).
+                `;
+            }
+
+            const prompt = `
+            Anda adalah seorang jurnalis senior dan staf Humas ahli di sekolah SMP PGRI 1 Kuwarasan (biasa disebut Spegsaku). Tugas Anda adalah memproses dokumen/bahan berita kasar menjadi dua output terpisah di dalam satu tanggapan terstruktur ini.
+
+            Gunakan struktur eksklusif ini dalam tanggapan Anda tanpa penambahan tanda bintang (*):
+            
+            ===JUDUL_POSTER===
+            [Tulis sebuah judul berita pendek yang menarik, ringkas, profesional maksimal 7 kata untuk poster visual]
+            
+            ===KUTIPAN_POSTER===
+            [Tulis sebuah kutipan inspiratif pendek dari Kepala Sekolah, Bapak Edhi Purwanto, S.Pd. yang membumi, menyentuh hati, berwibawa, maksimal 13 kata yang sangat relevan dengan substansi berita]
+            
+            ===TEKS_RILIS===
+            [Tulis rilis berita resmi jurnalistik sesuai kaidah KBBI dan EYD yang sempurna. Mulailah dengan HEADLINE, DATELINE (KUWARASAN, TANGGAL BULAN TAHUN), disusul Lead, tubuh berita yang rapi, bersih, berbobot akademis, profesional tanpa hiperbola, dan diakhiri dengan paragraf kutipan penguat pamungkas yang mendalam dari Kepala Sekolah Bapak Edhi Purwanto, S.Pd.]
+
+            ${narrativeInstruction}
+
+            BAHAN BERITA KASAR:
+            ${finalContent}
+            `;
+
+            // List of models to try in case of server overloaded (503/429) errors
+            const fallbackList = ['gemini-2.5-flash', 'gemini-1.5-flash', 'gemini-2.5-pro', 'gemini-1.5-pro'];
+            const modelsToTry = [initialModel];
+            for (let fallback of fallbackList) {
+                if (!modelsToTry.includes(fallback)) {
+                    modelsToTry.push(fallback);
                 }
             }
-        } catch (err) {
-            alert("Gagal Memproses Berita:\n" + err.message);
-            console.error(err);
-        } finally {
+
+            let success = false;
+            let lastError = null;
+
+            for (let i = 0; i < modelsToTry.length; i++) {
+                const currentModel = modelsToTry[i];
+                
+                if (i > 0) {
+                    // Update user interface with the current fallback attempt
+                    if (loaderTitle) loaderTitle.innerText = `Mencoba Model Cadangan (${currentModel})...`;
+                    if (loaderSub) loaderSub.innerText = "Sistem mengalihkan server secara dinamis agar pemrosesan tidak terganggu.";
+                    showToast(`Server model utama sibuk. Mengalihkan ke ${currentModel}...`, "info");
+                } else {
+                    if (loaderTitle) loaderTitle.innerText = "Menyinkronkan Data Jurnalistik...";
+                    if (loaderSub) loaderSub.innerText = "Harap tidak menutup halaman selagi AI merancang tata bahasa terbaik.";
+                }
+
+                try {
+                    const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${currentModel}:generateContent?key=${key}`, {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+                    });
+
+                    const data = await resp.json();
+                    
+                    if (data.error) {
+                        const errCode = data.error.code;
+                        // If it's high demand (503) or rate limit (429) or internal error (500), try fallback. Otherwise, stop (e.g. wrong API Key)
+                        if (errCode === 503 || errCode === 429 || errCode === 500) {
+                            lastError = new Error(`${data.error.message} (Kode: ${errCode})`);
+                            console.warn(`Model ${currentModel} sibuk/gagal. Mencoba cadangan berikutnya...`);
+                            continue;
+                        } else {
+                            throw new Error(`${data.error.message} (Kode: ${errCode})`);
+                        }
+                    }
+
+                    if (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts[0]) {
+                        const textResult = data.candidates[0].content.parts[0].text;
+                        
+                        // Elegant parsing algorithm
+                        const judulMatch = textResult.match(/===JUDUL_POSTER===([\s\S]*?)===KUTIPAN_POSTER===/);
+                        const kutipanMatch = textResult.match(/===KUTIPAN_POSTER===([\s\S]*?)===TEKS_RILIS===/);
+                        const rilisMatch = textResult.match(/===TEKS_RILIS===([\s\S]*)/);
+
+                        let title = "Komitmen Mutu SMP PGRI 1 Kuwarasan";
+                        let quote = "Membimbing generasi masa depan dengan dedikasi dan budi pekerti luhur.";
+                        let release = textResult;
+
+                        if (judulMatch) title = judulMatch[1].trim();
+                        if (kutipanMatch) quote = kutipanMatch[1].trim();
+                        if (rilisMatch) release = rilisMatch[1].trim();
+
+                        // Clean formatting artifacts
+                        title = title.replace(/[\#\*\_]/g, '');
+                        quote = quote.replace(/[\#\*\_]/g, '').replace(/^["']|["']$/g, '');
+                        release = release.replace(/[\#\*]/g, '');
+
+                        // Smooth injection into UI elements
+                        document.getElementById('posterTitle').innerText = title;
+                        document.getElementById('posterQuote').innerText = `"${quote}"`;
+                        releaseOutput.innerText = release;
+                        
+                        showToast("Rilis berita & poster berhasil dibuat!", "success");
+                        success = true;
+                        break; // Exit loop on successful generation
+                    } else {
+                        throw new Error("Respons sistem kosong. Silakan periksa kredensial API Key Anda.");
+                    }
+
+                } catch (err) {
+                    lastError = err;
+                    console.error(`Gagal pada model ${currentModel}:`, err);
+                    // Attempt next fallback in loop
+                    continue;
+                }
+            }
+
+            if (!success) {
+                showToast("Proses Jurnalistik Gagal: " + (lastError ? lastError.message : "Semua server AI sedang penuh."), "error");
+            }
+
             btn.disabled = false;
-            loader.style.none = 'none';
-            loader.style.display = 'none';
+            loader.classList.add('hidden');
         }
-    });
 
-    function copyContent() {
-        const text = document.getElementById('output').innerText;
-        navigator.clipboard.writeText(text).then(() => alert("Berita berhasil disalin ke papan klip!"));
-    }
+        // Copy text helper utilizing reliable system copy
+        function copyReleaseText() {
+            const text = document.getElementById('releaseOutput').innerText;
+            
+            // Clipboard fallback mechanism for safety
+            const tempTextArea = document.createElement("textarea");
+            tempTextArea.value = text;
+            document.body.appendChild(tempTextArea);
+            tempTextArea.select();
+            try {
+                document.execCommand('copy');
+                showToast("Teks rilis berita disalin ke papan klip!", "success");
+            } catch (err) {
+                showToast("Gagal menyalin teks", "error");
+            }
+            document.body.removeChild(tempTextArea);
+        }
 
-    // Inisialisasi PDF Worker
-    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.worker.min.js';
-</script>
+        // Clean PNG rasterization of the canvas poster using Html2Canvas
+        function downloadPoster() {
+            const container = document.getElementById('canvaPoster');
+            showToast("Menyiapkan berkas gambar poster berkualitas tinggi...", "info");
+            
+            html2canvas(container, {
+                useCORS: true,
+                allowTaint: true,
+                scale: 2.5, // High resolution upscale
+                backgroundColor: null
+            }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = 'Poster_Spegsaku_Juara.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+                showToast("Poster berhasil diunduh!", "success");
+            }).catch(err => {
+                showToast("Gagal mengonversi gambar poster: " + err.message, "error");
+            });
+        }
+
+        // Utility to toggle password view on API box
+        function toggleApiVisibility() {
+            const keyInput = document.getElementById('apiKey');
+            keyInput.type = keyInput.type === 'password' ? 'text' : 'password';
+        }
+
+        // Setup PDF rendering worker
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.worker.min.js';
+    </script>
 </body>
 </html>
